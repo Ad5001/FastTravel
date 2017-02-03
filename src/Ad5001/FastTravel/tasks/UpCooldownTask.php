@@ -27,15 +27,16 @@ use Ad5001\FastTravel\Main;
 
 
 
-class FastingTask extends PluginTask {
+class UpCooldownTask extends PluginTask {
 
 
 
 
-   public function __construct(Main $main) {
+   public function __construct(Main $main, Player $player) {
 
         parent::__construct($main);
         $this->main = $main;
+        $this->player = $player->getName();
         $this->server = $main->getServer();
 
     }
@@ -44,9 +45,7 @@ class FastingTask extends PluginTask {
 
 
     public function onRun($tick) {
-        foreach($this->server->getOnlinePlayers() as $p) {
-
-        }
+        unset($this->main->cancelUpAfterDown[$this->player]);
     }
 
 

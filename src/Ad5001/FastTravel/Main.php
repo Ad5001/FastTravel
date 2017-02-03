@@ -46,6 +46,7 @@ class Main extends PluginBase implements Listener {
 
     protected $elevator;
     protected $speed;
+    public $cancelUpAfterDown = [];
 
 
 
@@ -83,19 +84,20 @@ class Main extends PluginBase implements Listener {
     @return void
     */
     public function onPlayerSneak(PlayerToggleSneakEvent $event) {
-        $b = $event->getPlayer()->getLevel()->getBlock(new \pocketmine\math\Vector3(round($player->x), round($player->y - 1), $player->z));
+        $b = $event->getPlayer()->getLevel()->getBlock(new \pocketmine\math\Vector3(round($event->getPlayer()->x), floor($event->getPlayer()->y - 1), round($event->getPlayer()->z)));
         if($b->getId() == $this->elevator->getId() && $b->getDamage() == $this->elevator->getDamage() && $event->isSneaking()) { // Checking if the player is sneaking on the block set as elevator.
-            $bl = $this->getBlocksUnder($b);
+            $bl = $this->getBlockUnder($b);
             if(!is_null($bl) && !$this->hasFreeSpace($bl)) {
                 while(!is_null($bl) && !$this->hasFreeSpace($bl)) {
-                    $bl = $this->getBlocksUnder($bl);
+                    $bl = $this->getBlockUnder($bl);
                 }
             }
             if(!is_null($bl)) { // A elevator under exists
-                $event->getPlayer()->teleport(new \pocketmine\math\Vector3($bl->x, $bl->y + 1, $bl->z));
+                // $this->getLogger()->debug("Down " . $bl->y);
+                $event->getPlayer()->teleport(new \pocketmine\math\Vector3($bl->x, $bl->y + 1.5, $bl->z));
+                $this->setCooldown($event->getPlayer());
                 $event->getPlayer()->getLevel()->addSound(new \pocketmine\level\sound\EndermanTeleportSound($event->getPlayer()));
             }
-            $event->setCancelled();
         }
     }
 
@@ -105,16 +107,19 @@ class Main extends PluginBase implements Listener {
     @return void
     */
     public function onPlayerMove(PlayerMoveEvent $event) {
-        $b = $event->getPlayer()->getLevel()->getBlock(new \pocketmine\math\Vector3(round($player->x), round($player->y - 1), $player->z));
+        $b = $event->getPlayer()->getLevel()->getBlock(new \pocketmine\math\Vector3(round($event->getFrom()->x), floor($event->getFrom()->y - 1), round($event->getFrom()->z)));
         if($b->getId() == $this->elevator->getId() && $b->getDamage() == $this->elevator->getDamage() && $event->getTo()->y > $event->getFrom()->y) { // Checking if the player is sneaking on the block set as elevator.
-            $bl = $this->getBlocksAbove($b);
+            $this->getLogger()->debug($event->getFrom() . "/" . $event->getTo());
+            $bl = $this->getBlockAbove($b);
             if(!is_null($bl) && !$this->hasFreeSpace($bl)) {
                 while(!is_null($bl) && !$this->hasFreeSpace($bl)) {
-                    $bl = $this->getBlocksAbove($bl);
+                    $bl = $this->getBlockAbove($bl);
                 }
             }
-            if(!is_null($bl)) { // A elevator above exists
-                $event->setTo(new \pocketmine\math\Vector3($bl->x, $bl->y + 1, $bl->z));
+            if(!is_null($bl) && !isset($this->cancelUpAfterDown[$event->getPlayer()->getName()])) { // A elevator above exists
+                // $this->getLogger()->debug("Up" . $bl->y);
+                $event->setTo(new \pocketmine\level\Location($bl->x, $bl->y + 1.5, $bl->z));
+                $this->setCooldown($event->getPlayer());
                 $event->getPlayer()->getLevel()->addSound(new \pocketmine\level\sound\EndermanTeleportSound($event->getPlayer()));
             }
         }
@@ -139,7 +144,7 @@ class Main extends PluginBase implements Listener {
     public function getBlockUnder(\pocketmine\block\Block $b) {
         for($i = $b->y - 2/* TP atleast under two blocks of the current one*/; $i  > 0; $i--) {
             $block = $b->getLevel()->getBlock(new \pocketmine\math\Vector3($b->x, $i, $b->z));
-            if($block->geId() == $b->getId() && $block->getDamage() == $block->getDamage()) return $block;
+            if($block->getId() == $b->getId() && $block->getDamage() == $block->getDamage()) return $block;
         }
         return null;
     }
@@ -154,7 +159,7 @@ class Main extends PluginBase implements Listener {
     public function getBlockAbove(\pocketmine\block\Block $b) {
         for($i = $b->y + 2/* TP atleast above two blocks of the current one*/; $i < 128; $i++) {
             $block = $b->getLevel()->getBlock(new \pocketmine\math\Vector3($b->x, $i, $b->z));
-            if($block->geId() == $b->getId() && $block->getDamage() == $block->getDamage()) return $block;
+            if($block->getId() == $b->getId() && $block->getDamage() == $block->getDamage()) return $block;
         }
         return null;
     }
@@ -175,7 +180,6 @@ class Main extends PluginBase implements Listener {
 
     /*
     Return a clone of the elevator block
-    @param       
     @return \pocketmine\block\Block
     */
     public function getElevatorBlock() : \pocketmine\block\Block {
@@ -185,11 +189,22 @@ class Main extends PluginBase implements Listener {
 
     /*
     Return a clone of the speeding block
-    @param       
     @return \pocketmine\block\Block
     */
-    public function getSpeed() : \pocketmine\block\Block {
+    public function getSpeedBlock() : \pocketmine\block\Block {
         return clone $this->speed;
+    }
+
+
+
+    /*
+    Sets a cooldown of using the up & down blocks  to a player
+    @param     $player    Player
+    @return void
+    */
+    public function setCooldown(Player $player) {
+        $this->cancelUpAfterDown[$player->getName()] = true;
+        $this->getServer()->getScheduler()->scheduleDelayedTask(new tasks\UpCooldownTask($this, $player), 20);
     }
 
 

@@ -12,7 +12,7 @@
 #
 
 # Put here the block you want to be an elevetor.
-ElevatorBlock: cobblestone_wall
+ElevatorBlock: note_block
 
 SpeedBlock: ice
 ...
