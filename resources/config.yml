@@ -11,8 +11,20 @@
 # Website: http://github.com/Ad5001/FastTravel
 #
 
-# Put here the block you want to be an elevetor.
+# Put here the block you want to have as an elevetor.
 ElevatorBlock: note_block
 
-SpeedBlock: ice
+
+# Put here the block you want to have as a booster block
+BoostBlock: ice
+
+# Put here how much do you want the amplifier of the speed of the boost to be.
+BoostAmplifier: 10
+
+
+# Put here the block you want to have as a jump to sky block.
+JumpBlock: hay_bale
+
+# Put here the amplifier of the jump when steping on the block set above.
+JumpAmplifier: 2
 ...
