@@ -11,7 +11,7 @@ author:  Ad5001
 description: Travel in MCPE faster and easier than you ever tought !
 website: http://github.com/Ad5001/FastTravel
 version: 1.0
-api: [2.0.0]
+api: [2.0.0, 3.0.0-ALPHA1, 3.0.0-ALPHA2, 3.0.0-ALPHA3]
 main: Ad5001\FastTravel\Main
 commands: []
 permissions: []
