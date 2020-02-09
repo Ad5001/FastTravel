@@ -12,18 +12,18 @@
 #
 
 # Put here the block you want to have as an elevetor.
-ElevatorBlock: note_block
+ElevatorBlock: emerald_block
 
 
 # Put here the block you want to have as a booster block
-BoostBlock: ice
+BoostBlock: bedrock
 
 # Put here how much do you want the amplifier of the speed of the boost to be.
 BoostAmplifier: 10
 
 
 # Put here the block you want to have as a jump to sky block.
-JumpBlock: hay_bale
+JumpBlock: command_block
 
 # Put here the amplifier of the jump when steping on the block set above.
 JumpAmplifier: 2
